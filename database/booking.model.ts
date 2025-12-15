@@ -40,23 +40,21 @@ const BookingSchema = new Schema<IBooking>(
 BookingSchema.index({ eventId: 1, email: 1 }, { unique: true });
 
 // Pre-save hook to validate that the referenced event exists
-BookingSchema.pre('save', async function (next) {
+BookingSchema.pre('save', async function () {
   const booking = this as IBooking;
 
   // Only validate if eventId is new or modified
   if (booking.isModified('eventId')) {
     try {
       const eventExists = await Event.findById(booking.eventId);
-      
+
       if (!eventExists) {
-        return next(new Error('The referenced event does not exist'));
+        throw new Error('The referenced event does not exist');
       }
     } catch (error) {
-      return next(new Error('Failed to validate event reference'));
+      throw new Error('Failed to validate event reference');
     }
   }
-
-  next();
 });
 
 // Prevent model recompilation in Next.js development
